@@ -1,16 +1,61 @@
-# This is a sample Python script.
+import numpy as np
+from fastapi import FastAPI, HTTPException
+import joblib
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, MinMaxScaler
+import pickle
+import pandas as pd
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+model = joblib.load('C:/Users/marja/OneDrive/Documents/EPITA/1st Semester/DSP Project/dsp-finalproject/notebook/xgboost_model.pkl')
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+@app.get("/predict/")
+async def predict(Creditscore: int, Geography: str, Gender: str, Age: int, Tenure: int, Balance: float, NumofProducts: int,
+                  HasCrCard: int, IsActiveMember: int, EstimatedSalary: float, Complain: int, Satisfaction_Score: int, Card_Type: str,
+                  Point_Earned: int):
+    input_data = {
+        "CreditScore": [Creditscore],
+        "Geography": [Geography],
+        "Gender": [Gender],
+        "Age": [Age],
+        "Tenure": [Tenure],
+        "Balance": [Balance],
+        "NumofProducts": [NumofProducts],
+        "HasCrCard": [HasCrCard],
+        "IsActiveMember": [IsActiveMember],
+        "EstimatedSalary": [EstimatedSalary],
+        "Complain": [Complain],
+        "Satisfaction Score": [Satisfaction_Score],
+        "Card Type": [Card_Type],
+        "Point Earned": [Point_Earned]
+    }
+    input_df = pd.DataFrame(input_data)
+
+    #try:
+    #input_data = np.array([Creditscore, Geography, Gender, Age, Tenure, Balance, NumofProducts,HasCrCard, IsActiveMember,
+          #         EstimatedSalary, Complain, Satisfaction_Score,Card_Type , Point_Earned])
+    #model = pickle.load(open('C:/Users/marja/OneDrive/Documents/EPITA/1st Semester/DSP Project/dsp-finalproject/notebook/xgboost_model.pkl', 'rb'))
+
+    prediction = model.predict(input_df)
+
+    return {"prediction": prediction.tolist()}
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    #except Exception as e:
+       # raise HTTPException(status_code=500, detail="Error making prediction")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+#[Creditscore, Geography, Gender, Age, Tenure, Balance, NumofProducts,HasCrCard, IsActiveMember, EstimatedSalary, Complain, Satisfaction_Score,Card_Type , Point_Earned]
