@@ -1,5 +1,6 @@
+import io
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile
 import joblib
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,39 +17,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model = joblib.load('C:/Users/marja/OneDrive/Documents/EPITA/1st Semester/DSP Project/dsp-finalproject/notebook/xgboost_model.pkl')
+model = joblib.load('../notebook/boosting_model.joblib')
 
 
-@app.get("/predict/")
-async def predict(Creditscore: int, Geography: str, Gender: str, Age: int, Tenure: int, Balance: float, NumofProducts: int,
-                  HasCrCard: int, IsActiveMember: int, EstimatedSalary: float, Complain: int, Satisfaction_Score: int, Card_Type: str,
-                  Point_Earned: int):
-    input_data = {
-        "CreditScore": [Creditscore],
-        "Geography": [Geography],
-        "Gender": [Gender],
-        "Age": [Age],
-        "Tenure": [Tenure],
-        "Balance": [Balance],
-        "NumofProducts": [NumofProducts],
-        "HasCrCard": [HasCrCard],
-        "IsActiveMember": [IsActiveMember],
-        "EstimatedSalary": [EstimatedSalary],
-        "Complain": [Complain],
-        "Satisfaction Score": [Satisfaction_Score],
-        "Card Type": [Card_Type],
-        "Point Earned": [Point_Earned]
-    }
-    input_df = pd.DataFrame(input_data)
+@app.post("/predict/")
+async def predict(file: UploadFile):
+    if file.filename.endswith(".csv"):
+        contents = await file.read()
+        df = pd.read_csv(io.StringIO(contents.decode("utf-8")))
 
-    #try:
-    #input_data = np.array([Creditscore, Geography, Gender, Age, Tenure, Balance, NumofProducts,HasCrCard, IsActiveMember,
-          #         EstimatedSalary, Complain, Satisfaction_Score,Card_Type , Point_Earned])
-    #model = pickle.load(open('C:/Users/marja/OneDrive/Documents/EPITA/1st Semester/DSP Project/dsp-finalproject/notebook/xgboost_model.pkl', 'rb'))
-
-    prediction = model.predict(input_df)
-
-    return {"prediction": prediction.tolist()}
+        prediction = model.predict(df)
+        result = {"prediction": prediction.tolist()}
+        print(result)
+        return result
 
 
 
