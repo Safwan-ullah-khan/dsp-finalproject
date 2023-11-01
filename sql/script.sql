@@ -31,4 +31,6 @@ CREATE TABLE model_predictions (
 
 
 -- Some queries test 
-SELECT * FROM customer_data;
+
+.
+SELECT * FROM model_predictions;
