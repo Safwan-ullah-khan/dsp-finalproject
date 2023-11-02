@@ -1,3 +1,5 @@
+import json
+
 import streamlit as st
 import requests
 import pandas as pd
@@ -21,8 +23,8 @@ def prediction_page(api_url, csv_file):
         balance = float(st.number_input("Balance", help="Enter your account balance"))
         num_of_products = int(st.number_input("Number of Products", help="Enter the number of products you have with "
                                                                          "the bank", step=1))
-        has_cr_card = st.checkbox("Has Credit Card", help="Check if you have a credit card with the bank")
-        is_active_member = st.checkbox("Is Active Member", help="Check if you are an active member of the bank")
+        has_cr_card = int(st.number_input("Has Credit Card", help="Check if you have a credit card with the bank", step=1))
+        is_active_member = int(st.number_input("Is Active Member", help="Check if you are an active member of the bank", step=1))
         estimated_salary = float(st.number_input("Estimated Salary", help="Enter your estimated salary"))
         satisfaction_score = int(st.slider("Satisfaction Score", 0, 5, help="Select your satisfaction score with the "
                                                                             "bank", step=1))
@@ -32,28 +34,23 @@ def prediction_page(api_url, csv_file):
         # Predict button for single sample prediction
         if st.button("Predict Single Sample"):
             # Create a DataFrame with user input data for a single sample
+            """
             user_data = pd.DataFrame({
-                "Credit Score": [credit_score],
+                "CreditScore": [credit_score],
                 "Gender": [gender],
                 "Age": [age],
                 "Tenure": [tenure],
                 "Balance": [balance],
-                "Number of Products": [num_of_products],
-                "Has Credit Card": [has_cr_card],
-                "Is Active Member": [is_active_member],
-                "Estimated Salary": [estimated_salary],
+                "NumOfProducts": [num_of_products],
+                "HasCrCard": [has_cr_card],
+                "IsActiveMember": [is_active_member],
+                "EstimatedSalary": [estimated_salary],
                 "Satisfaction Score": [satisfaction_score],
                 "Card Type": [card_type],
-                "Points Earned": [point_earned]
+                "Point Earned": [point_earned]
             })
-
-            # Append user data to the CSV file
-            df = load_data(csv_file)
-            df = df.append(user_data, ignore_index=True)
-            df.to_csv(csv_file, index=False)
-
-            # Make predictions using the API URL for a single sample
-            sample_data = {
+            """
+            user_data = {
                 "CreditScore": credit_score,
                 "Gender": gender,
                 "Age": age,
@@ -63,11 +60,11 @@ def prediction_page(api_url, csv_file):
                 "HasCrCard": has_cr_card,
                 "IsActiveMember": is_active_member,
                 "EstimatedSalary": estimated_salary,
-                "SatisfactionScore": satisfaction_score,
-                "CardType": card_type,
-                "PointsEarned": point_earned
+                "Satisfaction Score": satisfaction_score,
+                "Card Type": card_type,
+                "Point Earned": point_earned
             }
-            prediction_result = get_prediction(api_url, sample_data)
+            prediction_result = get_prediction(api_url, user_data)
 
             # Display the prediction result for the single sample
             display_prediction(user_data, [prediction_result])
@@ -87,18 +84,18 @@ def prediction_page(api_url, csv_file):
 
             for index, row in uploaded_data.iterrows():
                 prediction_data = {
-                    "CreditScore": row["Credit Score"],
+                    "CreditScore": row["CreditScore"],
                     "Gender": row["Gender"],
                     "Age": row["Age"],
                     "Tenure": row["Tenure"],
                     "Balance": row["Balance"],
-                    "NumOfProducts": row["Number of Products"],
-                    "HasCrCard": row["Has Credit Card"],
-                    "IsActiveMember": row["Is Active Member"],
-                    "EstimatedSalary": row["Estimated Salary"],
-                    "SatisfactionScore": row["Satisfaction Score"],
-                    "CardType": row["Card Type"],
-                    "PointsEarned": row["Points Earned"]
+                    "NumOfProducts": row["NumOfProducts"],
+                    "HasCrCard": row["HasCrCard"],
+                    "IsActiveMember": row["IsActiveMember"],
+                    "EstimatedSalary": row["EstimatedSalary"],
+                    "Satisfaction Score": row["Satisfaction Score"],
+                    "Card Type": row["Card Type"],
+                    "Point Earned": row["Point Earned"]
                 }
                 prediction_result = get_prediction(api_url, prediction_data)
                 predictions.append(prediction_result)

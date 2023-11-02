@@ -13,7 +13,7 @@ def past_predictions_page(csv_file):
     prediction_source = st.selectbox("Prediction Source", ["webapp", "scheduled predictions", "all"])
 
     # Get past predictions from the CSV file
-    predictions = get_past_predictions(csv_file, start_date, end_date, prediction_source)
+    predictions = get_past_predictions(start_date, end_date, prediction_source)
 
     # Display past predictions in a table or chart
     display_past_predictions(predictions)
