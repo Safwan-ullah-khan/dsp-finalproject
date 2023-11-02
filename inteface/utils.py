@@ -11,7 +11,8 @@ def load_data(file):
 def get_prediction(api_url, data):
     response = requests.post(api_url, json=data)
     prediction = response.json()
-    return prediction
+    prediction_value = prediction['prediction'][0]
+    return prediction_value
 
 
 def display_prediction(data, prediction):

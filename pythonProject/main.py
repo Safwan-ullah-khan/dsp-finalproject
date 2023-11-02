@@ -34,13 +34,11 @@ app.add_middleware(
 model = joblib.load('../notebook/boosting_model.joblib')
 
 
-@app.post("/predict")
-async def predict(json_data, db: SessionLocal = Depends(get_db)):
+@app.post("/predict/")
+async def predict(json_data: dict, db: SessionLocal = Depends(get_db)):
     # Get the customer data from the JSON data
-    df = pd.read_json(json_data)
-    print(df)
-    print(df.columns)
-    """ 
+    df = pd.DataFrame([json_data])
+
     # Create a new customer object
     for _, row in df.iterrows():
         customer = Customer(
@@ -68,10 +66,10 @@ async def predict(json_data, db: SessionLocal = Depends(get_db)):
         model_prediction = ModelPrediction(PredictionResult=i)
         db.add(model_prediction)
     db.commit()
-    """
+
     prediction = model.predict(df)
     result = {"prediction": prediction.tolist()}
-    print(result)
+    #print(result)
     return result
 
 
@@ -89,7 +87,6 @@ async def get_past_predictions(start_date: str, end_date: str,db: SessionLocal =
         # Retrieve the corresponding customer data
         customer = db.query(Customer).filter_by(
             CustomerId=prediction.PredictionId).first()
-
 
         prediction_data = {
             "CustomerData": {
@@ -113,7 +110,6 @@ async def get_past_predictions(start_date: str, end_date: str,db: SessionLocal =
         results.append(prediction_data)
 
     return results
-
 
 
 if __name__ == "__main__":
