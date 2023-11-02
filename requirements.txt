@@ -11,3 +11,4 @@ sqlalchemy==1.4.50
 uvicorn==0.22.0
 fastapi==0.103.2
 imblearn==0.0
+streamlit==1.27.2
