@@ -1,3 +1,5 @@
+import json
+
 import streamlit as st
 import requests
 import pandas as pd
@@ -46,11 +48,12 @@ def prediction_page(api_url, csv_file):
                 "Card Type": [card_type],
                 "Points Earned": [point_earned]
             })
+            user_data.to_csv("user_data.csv", index=False)
 
             # Append user data to the CSV file
             df = load_data(csv_file)
-            df = df.append(user_data, ignore_index=True)
-            df.to_csv(csv_file, index=False)
+
+            df_json = df.to_json(orient="records")
 
             # Make predictions using the API URL for a single sample
             sample_data = {
@@ -67,7 +70,7 @@ def prediction_page(api_url, csv_file):
                 "CardType": card_type,
                 "PointsEarned": point_earned
             }
-            prediction_result = get_prediction(api_url, sample_data)
+            prediction_result = get_prediction(api_url, df_json)
 
             # Display the prediction result for the single sample
             display_prediction(user_data, [prediction_result])

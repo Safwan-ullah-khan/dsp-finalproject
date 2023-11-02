@@ -1,7 +1,7 @@
 import io
 from datetime import datetime
 
-import numpy as np
+import json
 from fastapi import FastAPI, HTTPException, UploadFile, Depends
 import joblib
 
@@ -34,41 +34,46 @@ app.add_middleware(
 model = joblib.load('../notebook/boosting_model.joblib')
 
 
-@app.post("/predict/")
-async def predict(file: UploadFile, db: SessionLocal = Depends(get_db)):
-    if file.filename.endswith(".csv"):
-        contents = await file.read()
-        df = pd.read_csv(io.StringIO(contents.decode("utf-8")))
-        for _, row in df.iterrows():
-            customer = Customer(
-                CreditScore=row['CreditScore'],
-                Gender=row['Gender'],
-                Age=row['Age'],
-                Tenure=row['Tenure'],
-                Balance=row['Balance'],
-                NumOfProducts=row['NumOfProducts'],
-                HasCrCard=row['HasCrCard'],
-                IsActiveMember=row['IsActiveMember'],
-                EstimatedSalary=row['EstimatedSalary'],
-                SatisfactionScore=row['Satisfaction Score'],
-                CardType=row['Card Type'],
-                PointEarned=row['Point Earned']
-            )
+@app.post("/predict")
+async def predict(json_data, db: SessionLocal = Depends(get_db)):
+    # Get the customer data from the JSON data
+    df = pd.read_json(json_data)
+    print(df)
+    print(df.columns)
+    """ 
+    # Create a new customer object
+    for _, row in df.iterrows():
+        customer = Customer(
+            CreditScore=row['CreditScore'],
+            Gender=row['Gender'],
+            Age=row['Age'],
+            Tenure=row['Tenure'],
+            Balance=row['Balance'],
+            NumOfProducts=row['NumOfProducts'],
+            HasCrCard=row['HasCrCard'],
+            IsActiveMember=row['IsActiveMember'],
+            EstimatedSalary=row['EstimatedSalary'],
+            SatisfactionScore=row['Satisfaction Score'],
+            CardType=row['Card Type'],
+            PointEarned=row['Point Earned']
+        )
 
-            # Add the customer to the database
-            db.add(customer)
+        # Add the customer to the database
+        db.add(customer)
 
-            # Commit the changes to the database
-        db.commit()
-        prediction = model.predict(df)
-        for i in prediction.tolist():
-            model_prediction = ModelPrediction(PredictionResult=i)
-            db.add(model_prediction)
-        db.commit()
+        # Commit the changes to the database
+    db.commit()
+    prediction = model.predict(df)
+    for i in prediction.tolist():
+        model_prediction = ModelPrediction(PredictionResult=i)
+        db.add(model_prediction)
+    db.commit()
+    """
+    prediction = model.predict(df)
+    result = {"prediction": prediction.tolist()}
+    print(result)
+    return result
 
-        result = {"prediction": prediction.tolist()}
-        print(result)
-        return result
 
 @app.post("/past_predict/")
 async def get_past_predictions(start_date: str, end_date: str,db: SessionLocal = Depends(get_db)):
