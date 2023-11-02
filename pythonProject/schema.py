@@ -1,7 +1,3 @@
-# build a schema using pydantic
-from pydantic import BaseModel
-
-
 from pydantic import BaseModel
 
 class CustomerFeatures(BaseModel):

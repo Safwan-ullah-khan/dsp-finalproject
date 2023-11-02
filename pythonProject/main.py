@@ -85,7 +85,7 @@ async def get_past_predictions(start_date: str, end_date: str,db: SessionLocal =
         customer = db.query(Customer).filter_by(
             CustomerId=prediction.PredictionId).first()
 
-        # Build a dictionary containing customer data, prediction result, and prediction date
+
         prediction_data = {
             "CustomerData": {
                 "CustomerId": customer.CustomerId,
