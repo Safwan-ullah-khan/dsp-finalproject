@@ -71,7 +71,7 @@ async def predict(json_data: dict, db: SessionLocal = Depends(get_db)):
 @app.get('/past-predictions/')
 def get_predict():
     connection = psycopg2.connect(
-        "dbname=mydbs user=postgres password=mynameisraydi112")
+        "dbname=mydbs user=postgres password='your_password'")
     cursor = connection.cursor()
     sql = """SELECT * FROM model_predictions;"""
     cursor.execute(sql)
