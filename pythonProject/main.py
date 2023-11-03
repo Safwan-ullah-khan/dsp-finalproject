@@ -1,12 +1,7 @@
-import io
-from datetime import datetime
-
-import json
-from fastapi import FastAPI, HTTPException, UploadFile, Depends
+from fastapi import FastAPI, Depends
 import joblib
-
+import psycopg2
 from fastapi.middleware.cors import CORSMiddleware
-
 import pandas as pd
 from db_setup import *
 from models import *
@@ -69,47 +64,21 @@ async def predict(json_data: dict, db: SessionLocal = Depends(get_db)):
 
     prediction = model.predict(df)
     result = {"prediction": prediction.tolist()}
-    #print(result)
+
     return result
 
 
-@app.post("/past_predict/")
-async def get_past_predictions(start_date: str, end_date: str,db: SessionLocal = Depends(get_db)):
-
-    start_date = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date = datetime.strptime(end_date, "%Y-%m-%d")
-    predictions = db.query(ModelPrediction).filter(
-        ModelPrediction.PredictionDate >= start_date,
-        ModelPrediction.PredictionDate <= end_date).all()
-    results = []
-
-    for prediction in predictions:
-        # Retrieve the corresponding customer data
-        customer = db.query(Customer).filter_by(
-            CustomerId=prediction.PredictionId).first()
-
-        prediction_data = {
-            "CustomerData": {
-                "CustomerId": customer.CustomerId,
-                "CreditScore": customer.CreditScore,
-                "Gender": customer.Gender,
-                "Age": customer.Age,
-                "Tenure": customer.Tenure,
-                "Balance": customer.Balance,
-                "NumOfProducts": customer.NumOfProducts,
-                "HasCrCard": customer.HasCrCard,
-                "IsActiveMember": customer.IsActiveMember,
-                "EstimatedSalary": customer.EstimatedSalary,
-                "SatisfactionScore": customer.SatisfactionScore,
-                "CardType": customer.CardType,
-                "PointEarned": customer.PointEarned,
-            },
-            "PredictionResult": prediction.PredictionResult,
-            "PredictionDate": prediction.PredictionDate,
-        }
-        results.append(prediction_data)
-
-    return results
+@app.get('/past-predictions/')
+def get_predict():
+    connection = psycopg2.connect(
+        "dbname=mydbs user=postgres password=mynameisraydi112")
+    cursor = connection.cursor()
+    sql = """SELECT * FROM model_predictions;"""
+    cursor.execute(sql)
+    predictions = cursor.fetchall()
+    connection.commit()
+    cursor.close()
+    return predictions
 
 
 if __name__ == "__main__":

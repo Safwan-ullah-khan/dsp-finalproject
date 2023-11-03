@@ -1,9 +1,6 @@
-import json
-
 import streamlit as st
-import requests
 import pandas as pd
-from utils import load_data, get_prediction, display_prediction
+from utils import get_prediction, display_prediction
 
 
 # Create the prediction page

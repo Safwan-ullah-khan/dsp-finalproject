@@ -3,6 +3,7 @@ from prediction import prediction_page
 from past_predictions import past_predictions_page
 
 API_URL = "http://127.0.0.1:8000/predict/"
+GET_API_URL = "http://127.0.0.1:8000/past-predictions/"
 CSV_FILE = "user_data.csv"
 
 
@@ -17,7 +18,7 @@ def main():
     if page == "Prediction Page":
         prediction_page(API_URL, CSV_FILE)
     elif page == "Past Predictions":
-        past_predictions_page(CSV_FILE)
+        past_predictions_page(GET_API_URL, CSV_FILE)
 
 
 # Run the main function
