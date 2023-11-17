@@ -32,7 +32,6 @@ def get_past_predictions(api_url, start_date, end_date, source):
         columns_list = ["PredictionId", "PredictionResult", "PredictionDate"]
 
         result_df = pd.DataFrame(past_predictions, columns=columns_list)
-        result_df = result_df.set_index(result_df.columns[0])
         result_df["PredictionDate"] = pd.to_datetime(result_df["PredictionDate"])
         result_df["PredictionDate"] = result_df["PredictionDate"].dt.date
         filtered_df = result_df[(result_df['PredictionDate'] >= start_date) & (
