@@ -62,7 +62,7 @@ async def predict(json_data: dict, db: SessionLocal = Depends(get_db)):
         db.add(model_prediction)
     db.commit()
 
-    prediction = model.predict(df)
+    #prediction = model.predict(df)
     result = {"prediction": prediction.tolist()}
 
     return result
@@ -71,7 +71,7 @@ async def predict(json_data: dict, db: SessionLocal = Depends(get_db)):
 @app.get('/past-predictions/')
 def get_predict():
     connection = psycopg2.connect(
-        "dbname=mydbs user=postgres password='your_password'")
+        "dbname=mydbs user=postgres password=mynameisraydi112")
     cursor = connection.cursor()
     sql = """SELECT * FROM model_predictions;"""
     cursor.execute(sql)
