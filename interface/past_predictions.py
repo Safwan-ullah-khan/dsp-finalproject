@@ -12,9 +12,12 @@ def past_predictions_page(api_url, csv_file):
                              max_value=today + datetime.timedelta(days=1))
 
     prediction_source = st.selectbox("Prediction Source", ["webapp", "scheduled predictions", "all"])
-
+    dates = {
+        "start_date": start_date.strftime("%Y-%m-%d"),
+        "end_date": end_date.strftime("%Y-%m-%d")
+    }
     # Get past predictions from the CSV file
-    predictions = get_past_predictions(api_url, start_date, end_date, prediction_source)
+    predictions = get_past_predictions(api_url, dates, prediction_source)
 
     # Display past predictions in a table or chart
     display_past_predictions(predictions)

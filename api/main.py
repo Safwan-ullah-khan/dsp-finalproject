@@ -1,8 +1,12 @@
+from datetime import datetime
+
 from fastapi import FastAPI, Depends
 import joblib
 import psycopg2
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
+from sqlalchemy import and_
+
 from db_setup import *
 from models import *
 from schema import *
@@ -56,15 +60,18 @@ async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
     return {"prediction": prediction_result.tolist()}
 
 @app.get('/past-predictions/')
-def get_predict():
-    connection = psycopg2.connect(
-        "dbname=mydbs user=postgres password=safwan")
-    cursor = connection.cursor()
-    sql = """SELECT * FROM customer_data;"""
-    cursor.execute(sql)
-    predictions = cursor.fetchall()
-    connection.commit()
-    cursor.close()
+def get_predict(dates: dict[str, str], db: SessionLocal = Depends(get_db)):
+
+    start_date = dates["start_date"]
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_date = dates["end_date"]
+    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    predictions = db.query(Customer).filter(
+        and_(Customer.PredictionDate >= start_date,
+             Customer.PredictionDate < end_date)
+    ).all()
+
     return predictions
 
 

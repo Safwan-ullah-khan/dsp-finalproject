@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel, Field
 
 class CustomerData(BaseModel):
@@ -15,6 +17,8 @@ class CustomerData(BaseModel):
     SatisfactionScore: int
     CardType: str
     PointEarned: int
-
+class DateRange(BaseModel):
+    start_date: date
+    end_date: date
 #class PredictionRequest(BaseModel):
  #   data: list[CustomerData]
