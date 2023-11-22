@@ -29,7 +29,23 @@ def get_past_predictions(api_url, start_date, end_date, source):
         # Display the results returned by the API
         past_predictions = response.json()
 
-        columns_list = ["PredictionId", "PredictionResult", "PredictionDate"]
+        columns_list = [
+            "CustomerId",
+            "CreditScore",
+            "Gender",
+            "Age",
+            "Tenure",
+            "Balance",
+            "NumOfProducts",
+            "HasCrCard",
+            "IsActiveMember",
+            "EstimatedSalary",
+            "SatisfactionScore",
+            "CardType",
+            "PointEarned",
+            "PredictionResult",
+            "PredictionDate",
+        ]
 
         result_df = pd.DataFrame(past_predictions, columns=columns_list)
         result_df["PredictionDate"] = pd.to_datetime(result_df["PredictionDate"])

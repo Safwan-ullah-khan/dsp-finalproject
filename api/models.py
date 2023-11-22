@@ -25,13 +25,15 @@ class Customer(Base):
     SatisfactionScore = Column(Integer)
     CardType = Column(String)
     PointEarned = Column(Integer)
+    PredictionResult = Column(Integer)
+    PredictionDate = Column(DateTime, server_default=func.now())
 
-class ModelPrediction(Base):
+'''class ModelPrediction(Base):
     __tablename__ = 'model_predictions'
 
     PredictionId = Column(Integer, primary_key=True)
     PredictionResult = Column(Integer)
-    PredictionDate = Column(DateTime, server_default=func.now())
+    PredictionDate = Column(DateTime, server_default=func.now())'''
 
 
 

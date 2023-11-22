@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 from db_setup import *
 from models import *
+from schema import *
 
 
 def create_tables():
@@ -30,50 +31,36 @@ model = joblib.load('../notebook/boosting_model.joblib')
 
 
 @app.post("/predict/")
-async def predict(json_data: dict, db: SessionLocal = Depends(get_db)):
-    # Get the customer data from the JSON data
-    df = pd.DataFrame([json_data])
+async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
+    prediction = []
 
-    # Create a new customer object
-    for _, row in df.iterrows():
-        customer = Customer(
-            CreditScore=row['CreditScore'],
-            Gender=row['Gender'],
-            Age=row['Age'],
-            Tenure=row['Tenure'],
-            Balance=row['Balance'],
-            NumOfProducts=row['NumOfProducts'],
-            HasCrCard=row['HasCrCard'],
-            IsActiveMember=row['IsActiveMember'],
-            EstimatedSalary=row['EstimatedSalary'],
-            SatisfactionScore=row['Satisfaction Score'],
-            CardType=row['Card Type'],
-            PointEarned=row['Point Earned']
-        )
+    customer = Customer(**data.dict())
+    #db.add(customer)
+    #db.commit()
 
-        # Add the customer to the database
-        db.add(customer)
+    input_data = pd.DataFrame(
+        [data.dict()])  # Convert Pydantic model to DataFrame
 
-        # Commit the changes to the database
-    db.commit()
-    prediction = model.predict(df)
-    for i in prediction.tolist():
-        model_prediction = ModelPrediction(PredictionResult=i)
-        db.add(model_prediction)
+    # Perform prediction
+    prediction_result = model.predict(input_data)
+    for i in prediction_result.tolist():
+        customer.PredictionResult = i
+    db.add(customer)
     db.commit()
 
-    #prediction = model.predict(df)
-    result = {"prediction": prediction.tolist()}
 
-    return result
-
+    #customer.PredictionResult = prediction_result
+    #db.add(customer)
+    #db.commit()
+    # You can now use or return the prediction result as needed
+    return {"prediction": prediction_result.tolist()}
 
 @app.get('/past-predictions/')
 def get_predict():
     connection = psycopg2.connect(
-        "dbname=mydbs user=postgres password=mynameisraydi112")
+        "dbname=mydbs user=postgres password=safwan")
     cursor = connection.cursor()
-    sql = """SELECT * FROM model_predictions;"""
+    sql = """SELECT * FROM customer_data;"""
     cursor.execute(sql)
     predictions = cursor.fetchall()
     connection.commit()

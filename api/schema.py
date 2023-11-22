@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-class CustomerFeatures(BaseModel):
+class CustomerData(BaseModel):
     CreditScore: int
 
     Gender: str
@@ -16,3 +16,5 @@ class CustomerFeatures(BaseModel):
     CardType: str
     PointEarned: int
 
+#class PredictionRequest(BaseModel):
+ #   data: list[CustomerData]
