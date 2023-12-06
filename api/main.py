@@ -36,15 +36,14 @@ model = joblib.load('../notebook/boosting_model.joblib')
 
 @app.post("/predict/")
 async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
-    prediction = []
+
 
     customer = Customer(**data.dict())
-    #db.add(customer)
-    #db.commit()
+
 
     input_data = pd.DataFrame(
         [data.dict()])  # Convert Pydantic model to DataFrame
-
+    input_data.drop(columns=["PredictionSource"], inplace=True, errors="ignore")
     # Perform prediction
     prediction_result = model.predict(input_data)
     for i in prediction_result.tolist():
@@ -53,23 +52,21 @@ async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
     db.commit()
 
 
-    #customer.PredictionResult = prediction_result
-    #db.add(customer)
-    #db.commit()
-    # You can now use or return the prediction result as needed
+
     return {"prediction": prediction_result.tolist()}
 
 @app.get('/past-predictions/')
-def get_predict(dates: dict[str, str], db: SessionLocal = Depends(get_db)):
+def get_predict(dates: dict[str, str, str], db: SessionLocal = Depends(get_db)):
 
     start_date = dates["start_date"]
     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
     end_date = dates["end_date"]
     end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
-
+    prediction_source = dates["pred_source"]
+    print(f"Prediction Source: {prediction_source}")
     predictions = db.query(Customer).filter(
         and_(Customer.PredictionDate >= start_date,
-             Customer.PredictionDate < end_date)
+             Customer.PredictionDate < end_date, Customer.PredictionSource == prediction_source)
     ).all()
 
     return predictions

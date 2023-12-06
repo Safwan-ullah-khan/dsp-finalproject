@@ -27,7 +27,7 @@ class Customer(Base):
     PointEarned = Column(Integer)
     PredictionResult = Column(Integer)
     PredictionDate = Column(DateTime, server_default=func.now())
-
+    PredictionSource = Column(String)
 '''class ModelPrediction(Base):
     __tablename__ = 'model_predictions'
 

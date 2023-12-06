@@ -17,6 +17,7 @@ class CustomerData(BaseModel):
     SatisfactionScore: int
     CardType: str
     PointEarned: int
+    PredictionSource: str
 class DateRange(BaseModel):
     start_date: date
     end_date: date

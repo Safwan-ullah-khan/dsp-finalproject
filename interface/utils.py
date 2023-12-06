@@ -21,9 +21,9 @@ def display_prediction(data, prediction):
     st.table(df)
 
 
-def get_past_predictions(api_url, dates, source):
+def get_past_predictions(api_url, data):
 
-    response = requests.get(api_url, json=dates)
+    response = requests.get(api_url, json=data)
 
     #if response.status_code == 200:
         # Display the results returned by the API

@@ -59,7 +59,8 @@ def prediction_page(api_url, csv_file):
                 "EstimatedSalary": estimated_salary,
                 "SatisfactionScore": satisfaction_score,
                 "CardType": card_type,
-                "PointEarned": point_earned
+                "PointEarned": point_earned,
+                "PredictionSource": "webpage"
             }
             prediction_result = get_prediction(api_url, user_data)
 
@@ -80,6 +81,7 @@ def prediction_page(api_url, csv_file):
             predictions = []
 
             for index, row in uploaded_data.iterrows():
+
                 prediction_data = {
                     "CreditScore": row["CreditScore"],
                     "Gender": row["Gender"],
@@ -92,7 +94,8 @@ def prediction_page(api_url, csv_file):
                     "EstimatedSalary": row["EstimatedSalary"],
                     "SatisfactionScore": row["Satisfaction Score"],
                     "CardType": row["Card Type"],
-                    "PointEarned": row["Point Earned"]
+                    "PointEarned": row["Point Earned"],
+                    "PredictionSource": "webpage"
                 }
                 ## Change this
                 prediction_result = get_prediction(api_url, prediction_data)
