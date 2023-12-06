@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from datetime import date
 
-class CustomerFeatures(BaseModel):
+from pydantic import BaseModel, Field
+
+class CustomerData(BaseModel):
     CreditScore: int
 
     Gender: str
@@ -15,4 +17,9 @@ class CustomerFeatures(BaseModel):
     SatisfactionScore: int
     CardType: str
     PointEarned: int
-
+    PredictionSource: str
+class DateRange(BaseModel):
+    start_date: date
+    end_date: date
+#class PredictionRequest(BaseModel):
+ #   data: list[CustomerData]

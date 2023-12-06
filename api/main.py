@@ -1,10 +1,15 @@
+from datetime import datetime
+
 from fastapi import FastAPI, Depends
 import joblib
 import psycopg2
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
+from sqlalchemy import and_
+
 from db_setup import *
 from models import *
+from schema import *
 
 
 def create_tables():
@@ -30,54 +35,40 @@ model = joblib.load('../notebook/boosting_model.joblib')
 
 
 @app.post("/predict/")
-async def predict(json_data: dict, db: SessionLocal = Depends(get_db)):
-    # Get the customer data from the JSON data
-    df = pd.DataFrame([json_data])
+async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
 
-    # Create a new customer object
-    for _, row in df.iterrows():
-        customer = Customer(
-            CreditScore=row['CreditScore'],
-            Gender=row['Gender'],
-            Age=row['Age'],
-            Tenure=row['Tenure'],
-            Balance=row['Balance'],
-            NumOfProducts=row['NumOfProducts'],
-            HasCrCard=row['HasCrCard'],
-            IsActiveMember=row['IsActiveMember'],
-            EstimatedSalary=row['EstimatedSalary'],
-            SatisfactionScore=row['Satisfaction Score'],
-            CardType=row['Card Type'],
-            PointEarned=row['Point Earned']
-        )
 
-        # Add the customer to the database
-        db.add(customer)
+    customer = Customer(**data.dict())
 
-        # Commit the changes to the database
-    db.commit()
-    prediction = model.predict(df)
-    for i in prediction.tolist():
-        model_prediction = ModelPrediction(PredictionResult=i)
-        db.add(model_prediction)
+
+    input_data = pd.DataFrame(
+        [data.dict()])  # Convert Pydantic model to DataFrame
+    input_data.drop(columns=["PredictionSource"], inplace=True, errors="ignore")
+    # Perform prediction
+    prediction_result = model.predict(input_data)
+    for i in prediction_result.tolist():
+        customer.PredictionResult = i
+    db.add(customer)
     db.commit()
 
-    #prediction = model.predict(df)
-    result = {"prediction": prediction.tolist()}
 
-    return result
 
+    return {"prediction": prediction_result.tolist()}
 
 @app.get('/past-predictions/')
-def get_predict():
-    connection = psycopg2.connect(
-        "dbname=mydbs user=postgres password=mynameisraydi112")
-    cursor = connection.cursor()
-    sql = """SELECT * FROM model_predictions;"""
-    cursor.execute(sql)
-    predictions = cursor.fetchall()
-    connection.commit()
-    cursor.close()
+def get_predict(dates: dict[str, str, str], db: SessionLocal = Depends(get_db)):
+
+    start_date = dates["start_date"]
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_date = dates["end_date"]
+    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+    prediction_source = dates["pred_source"]
+    print(f"Prediction Source: {prediction_source}")
+    predictions = db.query(Customer).filter(
+        and_(Customer.PredictionDate >= start_date,
+             Customer.PredictionDate < end_date, Customer.PredictionSource == prediction_source)
+    ).all()
+
     return predictions
 
 
