@@ -1,13 +1,17 @@
 import logging
 from datetime import datetime
 from datetime import timedelta
+
 from interface.utils import get_prediction
 from interface.main import API_URL, GET_API_URL
+
 
 import pandas as pd
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
+
 import json
+
 
 
 @dag(
@@ -51,9 +55,4 @@ def scheduled_job():
             prediction_result = get_prediction(API_URL, prediction_data)
             predictions.append(prediction_result)
 
-
 scheduled_job_dag = scheduled_job()
-
-
-
-
