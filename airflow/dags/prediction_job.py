@@ -1,58 +1,58 @@
-import logging
 from datetime import datetime
 from datetime import timedelta
+import sys
 
-from interface.utils import get_prediction
-from interface.main import API_URL, GET_API_URL
+import requests
 
+sys.path.append('../')
 
 import pandas as pd
+import logging
+import json
+import requests
+
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
-import json
-
+API_URL = "http://127.0.0.1:8050/predict/"
 
 
 @dag(
     dag_id='prediction_job',
     description='Take files and output predictions',
     tags=['dsp', 'prediction_job'],
-    schedule=timedelta(minutes=5),
+    schedule=timedelta(minutes=2),
     start_date=days_ago(n=0, hour=1)
 )
 def scheduled_job():
-    """
     @task
-    def get_data():
-        pass
-    """
+    def read_csv_function():
+        # Read the CSV file
+        #with open("customer_data.csv", "r") as csvfile:
+        df = pd.read_csv("../dsp-finalproject/data/Folder C/test_file.csv")
+
+        # Get the customer data
+        data = df.to_dict(orient="records")
+        logging.info(f'{data}')
+        # Return the customer data
+        return data
 
     @task
-    def make_predictions():
-        uploaded_data = pd.read_csv("../data/Folder C/customers_file_1.csv")
+    def process_response_function(data):
+        # Call the API endpoint
+        response = requests.post(
+            API_URL,
+            data=json.dumps(data),
+            headers={"Content-Type": "application/json"},
+        )
 
-        # Make predictions for each row in the uploaded CSV
-        predictions = []
+        # Process the response
+        response_data = response.json()
+        prediction = response_data["prediction"]
+        logging.info(f'{prediction}')
 
-        for index, row in uploaded_data.iterrows():
-            prediction_data = {
-                "CreditScore": row["CreditScore"],
-                "Gender": row["Gender"],
-                "Age": row["Age"],
-                "Tenure": row["Tenure"],
-                "Balance": row["Balance"],
-                "NumOfProducts": row["NumOfProducts"],
-                "HasCrCard": row["HasCrCard"],
-                "IsActiveMember": row["IsActiveMember"],
-                "EstimatedSalary": row["EstimatedSalary"],
-                "SatisfactionScore": row["Satisfaction Score"],
-                "CardType": row["Card Type"],
-                "PointEarned": row["Point Earned"],
-                "PredictionSource": "scheduled"
-            }
+    customer_data = read_csv_function()
+    process_response_function(customer_data)
 
-            prediction_result = get_prediction(API_URL, prediction_data)
-            predictions.append(prediction_result)
 
 scheduled_job_dag = scheduled_job()

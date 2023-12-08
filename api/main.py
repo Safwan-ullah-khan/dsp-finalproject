@@ -2,7 +2,6 @@ from datetime import datetime
 
 from fastapi import FastAPI, Depends
 import joblib
-import psycopg2
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 from sqlalchemy import and_
@@ -52,7 +51,6 @@ async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
     db.commit()
 
 
-
     return {"prediction": prediction_result.tolist()}
 
 @app.get('/past-predictions/')
@@ -74,4 +72,4 @@ def get_predict(dates: dict[str, str, str], db: SessionLocal = Depends(get_db)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8050)
