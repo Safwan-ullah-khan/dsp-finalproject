@@ -14,7 +14,7 @@ import requests
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
-API_URL = "http://127.0.0.1:8050/predict/"
+API_URL = "http://127.0.0.1:8050/predict"
 
 
 @dag(
@@ -28,7 +28,6 @@ def scheduled_job():
     @task
     def read_csv_function():
         # Read the CSV file
-        #with open("customer_data.csv", "r") as csvfile:
         df = pd.read_csv("../dsp-finalproject/data/Folder C/test_file.csv")
 
         # Get the customer data
