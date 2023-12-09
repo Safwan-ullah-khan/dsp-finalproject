@@ -24,34 +24,32 @@ API_URL = "http://127.0.0.1:8050/predict"
     schedule=timedelta(minutes=2),
     start_date=days_ago(n=0, hour=1)
 )
-def scheduled_job():
+def prediction_job():
     @task
     def read_csv_function():
         # Read the CSV file
         df = pd.read_csv("../dsp-finalproject/data/Folder C/test_file.csv")
+        df["PredictionSource"] = "scheduled"
 
-        # Get the customer data
         data = df.to_dict(orient="records")
         logging.info(f'{data}')
-        # Return the customer data
+
         return data
 
     @task
-    def process_response_function(data):
-        # Call the API endpoint
+    def make_predictions(data):
         response = requests.post(
             API_URL,
             data=json.dumps(data),
             headers={"Content-Type": "application/json"},
         )
 
-        # Process the response
         response_data = response.json()
         prediction = response_data["prediction"]
         logging.info(f'{prediction}')
 
     customer_data = read_csv_function()
-    process_response_function(customer_data)
+    make_predictions(customer_data)
 
 
-scheduled_job_dag = scheduled_job()
+scheduled_job_dag = prediction_job()
