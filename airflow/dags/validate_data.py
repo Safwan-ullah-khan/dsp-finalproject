@@ -30,8 +30,7 @@ def validate_data():
 
         for file in file_paths:
             logging.info(f'{file}')
-            result = validation.validation_checks(file)
-            logging.info(f'{result["success"]}')
+            validation.save_files_to_correct_folder(file, failed_folder, good_folder)
 
     get_data_validated()
 

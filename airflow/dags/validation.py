@@ -1,3 +1,5 @@
+import shutil
+
 import great_expectations as gx
 import pandas as pd
 import os
@@ -34,10 +36,10 @@ def validation_checks(file):
         "NumOfProducts", min_value=1, max_value=5
     )
     validator.expect_column_values_to_be_in_set(
-        "CardType", ["SILVER", "GOLD", "PLATINUM", "DIAMOND"]
+        "Card Type", ["SILVER", "GOLD", "PLATINUM", "DIAMOND"]
     )
     validator.expect_column_values_to_be_in_set(
-        "SatisfactionScore", [1, 2, 3, 4, 5]
+        "Satisfaction Score", [1, 2, 3, 4, 5]
     )
     validator.expect_column_values_to_be_in_set(
         "Exited", [0, 1]
@@ -55,5 +57,10 @@ def validation_checks(file):
     return validator_result
 
 
+def save_files_to_correct_folder(file, folder_b, folder_c):
+    validation_result = validation_checks(file)
 
-#validation_checks(FILE)
+    if validation_result["success"]:
+        shutil.move(file, folder_c)
+    else:
+        shutil.move(file, folder_b)
