@@ -63,4 +63,34 @@ def save_files_to_correct_folder(file, folder_b, folder_c):
     if validation_result["success"]:
         shutil.move(file, folder_c)
     else:
-        shutil.move(file, folder_b)
+        if all(result["success"] is False for result in validation_result["results"]):
+            shutil.move(file, folder_b)
+        else:
+            split_records_problem_files(file, folder_b, folder_c, validation_result)
+
+
+def split_records_problem_files(file_path, folder_b, folder_c, validation_result):
+    df = pd.read_csv(file_path)
+
+    problem_rows = []
+    for result in validation_result["results"]:
+        if not result["success"]:
+            problem_rows.extend(result["result"]["unexpected_index_list"])
+
+    if problem_rows:
+        df_problems = df.loc[problem_rows]
+        df_no_problems = df.drop(problem_rows)
+
+        problems_file_path = os.path.join(
+            folder_b, f"file_with_problems_{os.path.basename(file_path)}"
+        )
+        df_problems.to_csv(problems_file_path, index=False)
+
+        no_problems_file_path = os.path.join(
+            folder_c,
+            f"file_without_problems_{os.path.basename(file_path)}",
+        )
+        df_no_problems.to_csv(no_problems_file_path, index=False)
+
+    else:
+        shutil.move(file_path, folder_c)
