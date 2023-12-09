@@ -36,10 +36,10 @@ def validation_checks(file):
         "NumOfProducts", min_value=1, max_value=5
     )
     validator.expect_column_values_to_be_in_set(
-        "Card Type", ["SILVER", "GOLD", "PLATINUM", "DIAMOND"]
+        "CardType", ["SILVER", "GOLD", "PLATINUM", "DIAMOND"]
     )
     validator.expect_column_values_to_be_in_set(
-        "Satisfaction Score", [1, 2, 3, 4, 5]
+        "SatisfactionScore", [1, 2, 3, 4, 5]
     )
     validator.expect_column_values_to_be_in_set(
         "Exited", [0, 1]
