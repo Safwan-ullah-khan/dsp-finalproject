@@ -1,6 +1,7 @@
 from datetime import datetime
 from datetime import timedelta
 import sys
+import os
 
 import requests
 
@@ -38,6 +39,7 @@ def prediction_job():
 
     @task
     def make_predictions(data):
+        """
         response = requests.post(
             API_URL,
             data=json.dumps(data),
@@ -47,6 +49,14 @@ def prediction_job():
         response_data = response.json()
         prediction = response_data["prediction"]
         logging.info(f'{prediction}')
+        """
+        try:
+            response = requests.get(API_URL)
+            response.raise_for_status()
+
+            print(f"API is reachable. Status code: {response.status_code}")
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to reach the API. Error: {e}")
 
     customer_data = read_csv_function()
     make_predictions(customer_data)
