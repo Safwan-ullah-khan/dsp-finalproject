@@ -2,8 +2,8 @@ import streamlit as st
 from prediction import prediction_page
 from past_predictions import past_predictions_page
 
-API_URL = "http://127.0.0.1:8000/predict/"
-GET_API_URL = "http://127.0.0.1:8000/past-predictions/"
+API_URL = "http://127.0.0.1:8050/predict/"
+GET_API_URL = "http://127.0.0.1:8050/past-predictions/"
 CSV_FILE = "user_data.csv"
 
 
