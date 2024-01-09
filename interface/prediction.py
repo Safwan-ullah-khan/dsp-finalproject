@@ -92,11 +92,12 @@ def prediction_page(api_url, csv_file):
                     "HasCrCard": row["HasCrCard"],
                     "IsActiveMember": row["IsActiveMember"],
                     "EstimatedSalary": row["EstimatedSalary"],
-                    "SatisfactionScore": row["Satisfaction Score"],
-                    "CardType": row["Card Type"],
-                    "PointEarned": row["Point Earned"],
+                    "SatisfactionScore": row["SatisfactionScore"],
+                    "CardType": row["CardType"],
+                    "PointEarned": row["PointEarned"],
                     "PredictionSource": "webpage"
                 }
+
                 ## Change this
                 prediction_result = get_prediction(api_url, prediction_data)
                 predictions.append(prediction_result)

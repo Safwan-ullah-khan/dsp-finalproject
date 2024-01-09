@@ -3,8 +3,6 @@ from datetime import timedelta
 import sys
 import os
 
-import requests
-
 sys.path.append('../')
 
 import pandas as pd
@@ -15,7 +13,7 @@ import requests
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
-API_URL = "http://127.0.0.1:8050/predict"
+API_URL = "http://host.docker.internal:8050/predict/"
 
 
 @dag(
@@ -26,40 +24,49 @@ API_URL = "http://127.0.0.1:8050/predict"
     start_date=days_ago(n=0, hour=1)
 )
 def prediction_job():
+    """
     @task
     def read_csv_function():
         # Read the CSV file
-        df = pd.read_csv("../dsp-finalproject/data/Folder C/test_file.csv")
+        df = pd.read_csv("/opt/data/Folder C/test_file2.csv")
         df["PredictionSource"] = "scheduled"
 
         data = df.to_dict(orient="records")
-        logging.info(f'{data}')
-
+        logging.info(f'{type(data)}')
         return data
+    """
 
     @task
-    def make_predictions(data):
-        """
+    def make_predictions():
+        df = pd.read_csv("/opt/data/Folder C/test_file2.csv")
+        for _, row in df.iterrows():
+            prediction_data = {
+                "CreditScore": row["CreditScore"],
+                "Gender": row["Gender"],
+                "Age": row["Age"],
+                "Tenure": row["Tenure"],
+                "Balance": row["Balance"],
+                "NumOfProducts": row["NumOfProducts"],
+                "HasCrCard": row["HasCrCard"],
+                "IsActiveMember": row["IsActiveMember"],
+                "EstimatedSalary": row["EstimatedSalary"],
+                "SatisfactionScore": row["SatisfactionScore"],
+                "CardType": row["CardType"],
+                "PointEarned": row["PointEarned"],
+                "PredictionSource": "scheduled"
+            }
+
         response = requests.post(
             API_URL,
-            data=json.dumps(data),
-            headers={"Content-Type": "application/json"},
+            json=prediction_data
         )
 
         response_data = response.json()
         prediction = response_data["prediction"]
         logging.info(f'{prediction}')
-        """
-        try:
-            response = requests.get(API_URL)
-            response.raise_for_status()
 
-            print(f"API is reachable. Status code: {response.status_code}")
-        except requests.exceptions.RequestException as e:
-            print(f"Failed to reach the API. Error: {e}")
-
-    customer_data = read_csv_function()
-    make_predictions(customer_data)
+    #customer_data = read_csv_function()
+    make_predictions()
 
 
 scheduled_job_dag = prediction_job()

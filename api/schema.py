@@ -18,8 +18,11 @@ class CustomerData(BaseModel):
     CardType: str
     PointEarned: int
     PredictionSource: str
+
+"""
 class DateRange(BaseModel):
     start_date: date
     end_date: date
 #class PredictionRequest(BaseModel):
  #   data: list[CustomerData]
+"""

@@ -11,7 +11,7 @@ def past_predictions_page(api_url, csv_file):
     end_date = st.date_input("End Date",
                              max_value=today + datetime.timedelta(days=1))
 
-    prediction_source = st.selectbox("Prediction Source", ["webpage", "scheduled predictions", "all"])
+    prediction_source = st.selectbox("Prediction Source", ["webpage", "scheduled", "all"])
     data = {
         "start_date": start_date.strftime("%Y-%m-%d"),
         "end_date": end_date.strftime("%Y-%m-%d"),

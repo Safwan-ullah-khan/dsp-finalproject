@@ -35,10 +35,7 @@ model = joblib.load('../notebook/boosting_model.joblib')
 
 @app.post("/predict/")
 async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
-
-
     customer = Customer(**data.dict())
-
 
     input_data = pd.DataFrame(
         [data.dict()])  # Convert Pydantic model to DataFrame
@@ -50,24 +47,29 @@ async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
     db.add(customer)
     db.commit()
 
-
     return {"prediction": prediction_result.tolist()}
 
 
 @app.get('/past-predictions/')
-def get_predict(dates: dict[str, str, str], db: SessionLocal = Depends(get_db)):
+def get_predict(dates: dict, db: SessionLocal = Depends(get_db)):
+
     start_date = dates["start_date"]
     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
     end_date = dates["end_date"]
     end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
     prediction_source = dates["pred_source"]
     print(f"Prediction Source: {prediction_source}")
-    if (prediction_source == "webpage" or prediction_source == "scheduled predictions"):
+    if prediction_source == "webpage":
         predictions = db.query(Customer).filter(
             and_(Customer.PredictionDate >= start_date,
                  Customer.PredictionDate < end_date, Customer.PredictionSource == prediction_source)
         ).all()
-    elif prediction_source == "all":
+    if prediction_source == "scheduled":
+        predictions = db.query(Customer).filter(
+            and_(Customer.PredictionDate >= start_date,
+                 Customer.PredictionDate < end_date, Customer.PredictionSource == prediction_source)
+        ).all()
+    if prediction_source == "all":
         predictions = db.query(Customer).filter(
             and_(Customer.PredictionDate >= start_date,
                  Customer.PredictionDate < end_date)
