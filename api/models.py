@@ -28,12 +28,16 @@ class Customer(Base):
     PredictionResult = Column(Integer)
     PredictionDate = Column(DateTime, server_default=func.now())
     PredictionSource = Column(String)
-'''class ModelPrediction(Base):
-    __tablename__ = 'model_predictions'
 
-    PredictionId = Column(Integer, primary_key=True)
-    PredictionResult = Column(Integer)
-    PredictionDate = Column(DateTime, server_default=func.now())'''
+
+class ProblemStats(Base):
+    __tablename__ = 'data_problem_stats'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    file_name = Column(String)
+    column = Column(String)
+    expectation_type = Column(String)
+    unexpected_values = Column(String)
 
 
 
