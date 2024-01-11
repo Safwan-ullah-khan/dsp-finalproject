@@ -38,6 +38,7 @@ class ProblemStats(Base):
     column = Column(String)
     expectation_type = Column(String)
     unexpected_values = Column(String)
+    error_time = Column(DateTime, server_default=func.now())
 
 
 

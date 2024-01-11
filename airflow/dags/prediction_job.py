@@ -7,13 +7,14 @@ sys.path.append('../')
 
 import pandas as pd
 import logging
-import json
 import requests
 
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
+
 API_URL = "http://host.docker.internal:8050/predict/"
+folder_path = "/opt/data/Folder C"
 
 
 @dag(
@@ -21,24 +22,33 @@ API_URL = "http://host.docker.internal:8050/predict/"
     description='Take files and output predictions',
     tags=['dsp', 'prediction_job'],
     schedule=timedelta(minutes=2),
-    start_date=days_ago(n=0, hour=1)
+    start_date=days_ago(n=0, hour=1),
+    catchup=False
 )
 def prediction_job():
-    """
     @task
-    def read_csv_function():
-        # Read the CSV file
-        df = pd.read_csv("/opt/data/Folder C/test_file2.csv")
-        df["PredictionSource"] = "scheduled"
+    def check_for_new_data(path):
+        csv_files = [file for file in os.listdir(path) if
+                     file.endswith(".csv") and
+                     not file.startswith("predicted_")]
 
-        data = df.to_dict(orient="records")
-        logging.info(f'{type(data)}')
-        return data
-    """
+        if not csv_files:
+            return None
+
+        df_list = []
+        for file in csv_files:
+            file_path = os.path.join(folder_path, file)
+            df_list.append(pd.read_csv(file_path))
+            processed_file_path = os.path.join(folder_path,
+                                               f'predicted_{file}')
+            os.rename(file_path, processed_file_path)
+
+        merged_df = pd.concat(df_list, ignore_index=True)
+        return merged_df
 
     @task
-    def make_predictions():
-        df = pd.read_csv("/opt/data/Folder C/test_file2.csv")
+    def make_predictions(df):
+        prediction_data = {}
         for _, row in df.iterrows():
             prediction_data = {
                 "CreditScore": row["CreditScore"],
@@ -65,8 +75,8 @@ def prediction_job():
         prediction = response_data["prediction"]
         logging.info(f'{prediction}')
 
-    #customer_data = read_csv_function()
-    make_predictions()
+    df_to_predict = check_for_new_data(folder_path)
+    make_predictions(df_to_predict)
 
 
 scheduled_job_dag = prediction_job()

@@ -13,10 +13,29 @@ from sqlalchemy.orm import sessionmaker
 sys.path.append('../')
 
 import logging
-#from api.db_setup import *
 from api.models import *
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
+import smtplib
+from email.mime.text import MIMEText
+
+
+DB_URL = "postgresql://postgres:khanhduong@host.docker.internal:5432/mydbs"
+user_email = "duong.tranhn1102@gmail.com"
+
+
+def send_email(sender, recipient, subject, message):
+    # Create the message
+    message = MIMEText(message)
+    message["Subject"] = subject
+    message["From"] = sender
+    message["To"] = recipient
+
+    # Establish a connection with the SMTP server
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(user_email, "ulws pdlo avlh oggs")
+        server.sendmail(sender, recipient, message.as_string())
 
 
 @dag(
@@ -24,7 +43,8 @@ from airflow.utils.dates import days_ago
     description='Take files and validate the quality',
     tags=['dsp', 'validate', 'ingestion'],
     schedule=timedelta(minutes=1),
-    start_date=days_ago(n=0, hour=1)
+    start_date=days_ago(n=0, hour=1),
+    catchup=False
 )
 def data_ingestion():
     default_folder = "/opt/data/Folder A"
@@ -95,10 +115,16 @@ def data_ingestion():
         validator_result = validator.validate()
         return validator_result
 
-    """
     @task
-    def raise_alert():
-    """
+    def raise_alert(validator_result):
+        sender = user_email
+        recipient = "trankhanhduong112@gmail.com"
+        subject = "Data Quality Issues"
+        message = "Data quality issues detected. Check the logs for details."
+
+        for result in validator_result["results"]:
+            if not result["success"]:
+                send_email(sender, recipient, subject, message)
 
     @task
     def split_file(file, validator_result, folder_b, folder_c):
@@ -145,7 +171,7 @@ def data_ingestion():
                     file_name=file_name,
                     column=column,
                     expectation_type=expectation_type,
-                    unexpected_values=unexpected_values,
+                    unexpected_values=unexpected_values
                 )
                 session.add(stat)
 
@@ -155,9 +181,9 @@ def data_ingestion():
     # Task
     chosen_file = read_file()
     validate = validate_data(chosen_file)
-    # raise_alert
+    raise_alert(validate)
     split_file(chosen_file, validate, failed_folder, good_folder)
-    save_log(validate, "postgresql://postgres:khanhduong@host.docker.internal:5432/mydbs")
+    save_log(validate, DB_URL)
 
 
 ingestion_dag = data_ingestion()
