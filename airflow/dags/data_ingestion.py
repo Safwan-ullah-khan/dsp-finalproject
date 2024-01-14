@@ -1,14 +1,12 @@
 from datetime import timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from api.models import *
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 from email.mime.text import MIMEText
 import datetime
 import random
 import glob
-import sys
 import os
 import pandas as pd
 import shutil
@@ -16,7 +14,11 @@ import great_expectations as gx
 import logging
 import smtplib
 
-sys.path.append('../')
+import sys
+sys.path.append('/opt/api')
+from models import *
+from db_setup import *
+
 DB_URL = "postgresql://postgres:khanhduong@host.docker.internal:5432/mydbs"
 user_email = "duong.tranhn1102@gmail.com"
 
@@ -50,8 +52,9 @@ def data_ingestion():
 
     @task
     def read_file():
-        file_pattern = os.path.join(default_folder, ".csv")
+        file_pattern = os.path.join(default_folder, "*.csv")
         file_paths = glob.glob(file_pattern)
+        logging.info(f'{file_paths}')
         file_paths = [f for f in file_paths if
                       not os.path.basename(f).startswith('processed_')]
 
