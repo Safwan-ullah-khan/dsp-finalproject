@@ -1,14 +1,12 @@
 from datetime import datetime
-
 from fastapi import FastAPI, Depends
-import joblib
 from fastapi.middleware.cors import CORSMiddleware
-import pandas as pd
 from sqlalchemy import and_
-
 from db_setup import *
 from models import *
 from schema import *
+import pandas as pd
+import joblib
 
 
 def create_tables():
@@ -16,10 +14,10 @@ def create_tables():
 
 
 def start_application():
-    app = FastAPI(title=settings.PROJECT_NAME,
-                  version=settings.PROJECT_VERSION)
+    application = FastAPI(title=settings.PROJECT_NAME,
+                          version=settings.PROJECT_VERSION)
     create_tables()
-    return app
+    return application
 
 
 app = start_application()
@@ -37,13 +35,16 @@ model = joblib.load('../notebook/boosting_model.joblib')
 async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
     customer = Customer(**data.dict())
 
-    input_data = pd.DataFrame(
-        [data.dict()])  # Convert Pydantic model to DataFrame
-    input_data.drop(columns=["PredictionSource"], inplace=True, errors="ignore")
+    # Convert Pydantic model to DataFrame
+    input_data = pd.DataFrame([data.dict()])
+    input_data.drop(
+        columns=["PredictionSource"], inplace=True, errors="ignore")
+
     # Perform prediction
     prediction_result = model.predict(input_data)
     for i in prediction_result.tolist():
         customer.PredictionResult = i
+
     db.add(customer)
     db.commit()
 
@@ -59,21 +60,27 @@ def get_predict(dates: dict, db: SessionLocal = Depends(get_db)):
     end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
     prediction_source = dates["pred_source"]
     print(f"Prediction Source: {prediction_source}")
+
     if prediction_source == "webpage":
         predictions = db.query(Customer).filter(
             and_(Customer.PredictionDate >= start_date,
-                 Customer.PredictionDate < end_date, Customer.PredictionSource == prediction_source)
+                 Customer.PredictionDate < end_date,
+                 Customer.PredictionSource == prediction_source)
         ).all()
+
     if prediction_source == "scheduled":
         predictions = db.query(Customer).filter(
             and_(Customer.PredictionDate >= start_date,
-                 Customer.PredictionDate < end_date, Customer.PredictionSource == prediction_source)
+                 Customer.PredictionDate < end_date,
+                 Customer.PredictionSource == prediction_source)
         ).all()
+
     if prediction_source == "all":
         predictions = db.query(Customer).filter(
             and_(Customer.PredictionDate >= start_date,
                  Customer.PredictionDate < end_date)
         ).all()
+
     return predictions
 
 

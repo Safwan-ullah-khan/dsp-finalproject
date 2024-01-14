@@ -1,6 +1,5 @@
-from datetime import date
+from pydantic import BaseModel
 
-from pydantic import BaseModel, Field
 
 class CustomerData(BaseModel):
     CreditScore: int
@@ -18,6 +17,7 @@ class CustomerData(BaseModel):
     CardType: str
     PointEarned: int
     PredictionSource: str
+
 
 """
 class DateRange(BaseModel):
