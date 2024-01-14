@@ -4,10 +4,8 @@ from airflow.utils.dates import days_ago
 import pandas as pd
 import logging
 import requests
-import sys
 import os
 
-sys.path.append('../')
 API_URL = "http://host.docker.internal:8050/predict/"
 folder_path = "/opt/data/Folder C"
 
