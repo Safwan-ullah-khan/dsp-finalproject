@@ -2,10 +2,10 @@ version: '3'
 
 services:
   dsp-final-airflow:
-    image: dsp-final-airflow:latest
+    image: my-airflow-image:latest
 
     volumes:
-      - .:/opt/airflow
+      - ./:/opt/airflow/
       - ../data:/opt/data
       - ../api:/opt/api
 
