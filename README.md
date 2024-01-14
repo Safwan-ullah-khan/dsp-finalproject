@@ -41,6 +41,8 @@ Embark on a journey through the core components of our project:
   
 - **Model Service (API): FastAPI:** Our go-to solution for exposing the ML model, handling predictions, and seamlessly interacting with the web application.
 
+![](images/job_board.jpeg)
+
 - **Database: PostgreSQL, SQLAlchemy:** The reliable keeper of records, storing past predictions and diligently tracking data quality issues.
 
 ![](images/features.jpeg)
@@ -50,45 +52,49 @@ Embark on a journey through the core components of our project:
 - **Prediction Job: Airflow:** The automaton of predictions, scanning for new data and orchestrating the forecasting process every two minutes.
 
 
-![](images/job_board.jpeg)
-
-
 ![](images/dags.jpeg)
 
-
-
 - **Monitoring Dashboard: Grafana:** A vigilant guardian, monitoring data quality and model prediction issues through insightful charts.
+
+![](images/dashboard.png)
 
 ## Installation and Setup
 
 1. **Initial Installation:**
 Install project dependencies:
-   - pip install -r requirements.txt
 
+```bash
+pip install -r requirements.txt
+```
 
-2. **Install Docker and Docker Compose**
+2. **Install Docker and Docker Compose** (Docker Desktop is additional)
 
 3. **Build Docker image and start services:**
--  docker build -f dockerfile -t dsp-final-airflow:latest . && docker-compose -f "docker-compose.yml" up -d --build
 
-4. **Modify the Airflow configuration file:**
-- Open airflow.cfg.
-- Find and modify the following line: enable_xcom_pickling = True
-
+```commandline
+cd airflow
+docker build -f Dockerfile -t {name_of_the_image}:latest . 
+docker-compose -f "docker-compose.yml" up -d --build
+```
 
 ### Running Steps:
 1. **Run the FastAPI main.py file for the API:**
+
+```commandline
 uvicorn main:app --reload
+```
 
 2. **Run the Streamlit app.py file for the webapp:**
-streamlit run app.py
 
+```commandline
+streamlit run app.py
+```
 
 ### Accessing Frontend:
-For the webapp, go to localhost:8501.8
+For the webapp, go to localhost:8501.
 
 ### Accessing Airflow:
 - Go to localhost:8080.
-- Retrieve the Airflow admin password from the standalone_admin_password file, and use the username admin.
+- Retrieve the Airflow admin password from the standalone_admin_password file, and use the username *admin*.
 
 
