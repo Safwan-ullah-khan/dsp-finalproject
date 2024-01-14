@@ -81,13 +81,22 @@ docker-compose -f "docker-compose.yml" up -d --build
 1. **Run the FastAPI main.py file for the API:**
 
 ```commandline
+cd main
 uvicorn main:app --reload
 ```
 
 2. **Run the Streamlit app.py file for the webapp:**
 
 ```commandline
+cd interface
 streamlit run app.py
+```
+
+3. **Generate csv files for the DAG jobs:**
+
+```commandline
+# Root directory
+python generate_files.py
 ```
 
 ### Accessing Frontend:
