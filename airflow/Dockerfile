@@ -1,5 +1,12 @@
-FROM apache/airflow:latest
+# Parent image
+FROM apache/airflow:2.8.0
 
-ADD requirements.txt .
+# Set config variables
+ENV AIRFLOW__CORE__ENABLE_XCOM_PICKLING=True
+ENV AIRFLOW__CORE__LOAD_EXAMPLES=False
 
-RUN pip install apache-airflow==${AIRFLOW_VERSION} -r requirements.txt
+# Install dependencies
+COPY ../requirements.txt ./
+
+# Install packages
+RUN pip install --no-cache-dir apache-airflow==${AIRFLOW_VERSION} -r requirements.txt
