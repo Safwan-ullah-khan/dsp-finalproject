@@ -1,40 +1,20 @@
-from datetime import timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from datetime import timedelta
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from email.mime.text import MIMEText
+from utils import *
 import datetime
 import random
 import glob
 import os
 import pandas as pd
 import shutil
-import great_expectations as gx
 import logging
-import smtplib
 
 import sys
 sys.path.append('/opt/api')
-from models import *
-from db_setup import *
-
-DB_URL = "postgresql://postgres:khanhduong@host.docker.internal:5432/mydbs"
-user_email = "duong.tranhn1102@gmail.com"
-
-
-def send_email(sender, recipient, subject, message):
-    # Create the message
-    message = MIMEText(message)
-    message["Subject"] = subject
-    message["From"] = sender
-    message["To"] = recipient
-
-    # Establish a connection with the SMTP server
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(user_email, "ulws pdlo avlh oggs")
-        server.sendmail(sender, recipient, message.as_string())
+from models import Base, ProblemStats
 
 
 @dag(
@@ -72,63 +52,50 @@ def data_ingestion():
 
     @task
     def validate_data(file):
-        context = gx.get_context()
-        validator = context.sources.pandas_default.read_csv(file)
-
-        validator.expect_column_values_to_be_in_set(
-            "Gender", ["Male", "Female"],
-            result_format={'result_format': 'SUMMARY'}
-        )
-        validator.expect_column_values_to_be_between(
-            "Age", min_value=0, max_value=120,
-            result_format={'result_format': 'SUMMARY'}
-        )
-
-        validator.expect_column_values_to_be_between(
-            "CreditScore", min_value=0,
-            result_format={'result_format': 'SUMMARY'}
-        )
-        validator.expect_column_values_to_be_between(
-            "Balance", min_value=0, result_format={'result_format': 'SUMMARY'}
-        )
-        validator.expect_column_values_to_be_between(
-            "NumOfProducts", min_value=1, max_value=5,
-            result_format={'result_format': 'SUMMARY'}
-        )
-        validator.expect_column_values_to_be_in_set(
-            "CardType", ["SILVER", "GOLD", "PLATINUM", "DIAMOND"],
-            result_format={'result_format': 'SUMMARY'}
-        )
-        validator.expect_column_values_to_be_in_set(
-            "SatisfactionScore", [1, 2, 3, 4, 5],
-            result_format={'result_format': 'SUMMARY'}
-        )
-
-        validator.expect_column_values_to_be_in_set(
-            "HasCrCard", [0, 1], result_format={'result_format': 'SUMMARY'}
-        )
-        validator.expect_column_values_to_be_in_set(
-            "IsActiveMember", [0, 1],
-            result_format={'result_format': 'SUMMARY'}
-        )
-
-        validator_result = validator.validate()
-        return validator_result
+        validation_outputs = gx_validation(file)
+        return validation_outputs
 
     @task
-    def raise_alert(validator_result):
+    def raise_alert(validator_output):
+        validator_result = validator_output["validator_result"]
         sender = user_email
-        recipient = "trankhanhduong112@gmail.com"
+        recipient = recipient_email
         subject = "Data Quality Issues"
-        message = "Data quality issues detected. Check the logs for details."
 
-        for result in validator_result["results"]:
-            if not result["success"]:
-                send_email(sender, recipient, subject, message)
-                logging.info(f'Email sent!')
+        failed_tests = [result for result in validator_result["results"] if
+                        not result["success"]]
+        if failed_tests:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            message = f"Dear Engineering team,\n\n"
+            message += f"Data Quality Alert - {timestamp}\n\n"
+            message += "The following data quality checks have failed:\n\n"
+
+            for test in failed_tests:
+                message += (f"- Expectation: "
+                            f"{test['expectation_config']['expectation_type']}\n")
+                message += (f"- Column: "
+                            f"{test['expectation_config']['kwargs']['column']}\n")
+                message += (f"- Details: "
+                            f"{test['result']['partial_unexpected_list']}\n"
+                            f"- Number of rows: "
+                            f"{len(test['result']['partial_unexpected_list'])}"
+                            f"\n\n")
+
+            message += ("Please review the validation results and "
+                        "address the issues as soon as possible.\n")
+            message += (f'\nBest Regards,\n'
+                        f'[Name]\n'
+                        f'ML engineer\n'
+                        f'[Company]')
+            send_email(sender, recipient, subject, message)
+            logging.info(f'Email sent!')
+        else:
+            logging.info('No data quality issues detected.')
 
     @task
-    def split_file(file, validator_result, folder_b, folder_c):
+    def split_file(validator_output, folder_b, folder_c):
+        file = validator_output["file"]
+        validator_result = validator_output["validator_result"]
         df = pd.read_csv(file)
         problem_rows = []
 
@@ -158,12 +125,11 @@ def data_ingestion():
             df_no_problems.to_csv(no_problems_file_path, index=False)
 
     @task
-    def save_log(validator_result, db_url):
+    def save_quality_issues(validator_output, db_url):
         engine = create_engine(db_url)
-        Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
         session = Session()
-
+        validator_result = validator_output["validator_result"]
         file_name = (
             os.path.basename(validator_result
                              ["meta"]["batch_spec"]
@@ -183,16 +149,14 @@ def data_ingestion():
                     unexpected_values=unexpected_values
                 )
                 session.add(stat)
-
             session.commit()
-            session.close()
 
     # Task
     chosen_file = read_file()
     validate = validate_data(chosen_file)
     raise_alert(validate)
-    split_file(chosen_file, validate, failed_folder, good_folder)
-    save_log(validate, DB_URL)
+    split_file(validate, failed_folder, good_folder)
+    save_quality_issues(validate, DB_URL)
 
 
 ingestion_dag = data_ingestion()
