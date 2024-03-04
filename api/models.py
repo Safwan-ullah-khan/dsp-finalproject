@@ -44,7 +44,7 @@ class Customer(Base):
     CustomerId = Column(Integer, autoincrement=True, primary_key=True)
     CreditScore = Column(Integer)
     Gender = Column(String)
-    Age = Column(Integer)
+    Age = Column(Float)
     Tenure = Column(Integer)
     Balance = Column(Float)
     NumOfProducts = Column(Integer)

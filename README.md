@@ -1,12 +1,5 @@
 # Data Science in Production Project: Customer Bank Churn Prediction
 
-#### Collaborators
-- Khanh Duong Tran
-- Brandon Nguelewi Toutsap
-- Massinissa Zekrini
-- Mohammad Solgi
-- Safwan Ullah Khan
-
 Welcome to our immersive journey in Data Science! In this project, we delve into the dynamic landscape of Customer Bank Churn Prediction, combining the prowess of Machine Learning (ML) with cutting-edge technologies to empower banks in anticipating and mitigating customer attrition.
 
 ## Project Overview
@@ -34,11 +27,8 @@ Embark on a journey through the core components of our project:
 
 ![](images/prediction_page.jpeg)
 
-
 ![](images/past_pred.jpeg)
 
-
-  
 - **Model Service (API): FastAPI:** Our go-to solution for exposing the ML model, handling predictions, and seamlessly interacting with the web application.
 
 ![](images/job_board.jpeg)
@@ -57,13 +47,6 @@ Embark on a journey through the core components of our project:
 - **Monitoring Dashboard: Grafana:** A vigilant guardian, monitoring data quality and model prediction issues through insightful charts.
 
 ![](images/dashboard.png)
-
-## Tasks Accomplished as Data Scientist:
-- Conducted comprehensive Exploratory Data Analysis (EDA) to unveil valuable insights from the dataset.
-- Collected, cleaned, and prepared data for model training, ensuring data integrity and reliability.
-- Trained and evaluated multiple machine learning models, including Logistic Regression, Random Forest, Gradient Boosting, and XGBoost.
-- Utilized metrics such as confusion matrix, ROC curve, and AUC to assess model performance and iteratively refine the models.
-- Integrated the machine learning model into the web application's backend using FastAPI, ensuring seamless functionality and real-time predictions.
 
 ## Prerequisites
 
@@ -132,6 +115,10 @@ For the webapp, go to localhost:8501.
 - Go to localhost:8080.
 - Retrieve the Airflow admin password from the standalone_admin_password file, and use the username *admin*.
 
-## To-Do:
 
-- [ ] Track models using MLflow.
+#### Collaborators
+- Khanh Duong Tran
+- Brandon Nguelewi Toutsap
+- Massinissa Zekrini
+- Mohammad Solgi
+- Safwan Ullah Khan

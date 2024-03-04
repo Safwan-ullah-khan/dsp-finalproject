@@ -1,8 +1,8 @@
 version: '3'
 
 services:
-  churn-app-airflow:
-    image: my-airflow-image:latest
+  dsp-final-airflow:
+    image: dsp-final-airflow:latest
 
     volumes:
       - ./:/opt/airflow/
