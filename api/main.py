@@ -1,13 +1,21 @@
 from datetime import datetime
+from typing import List
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import and_
 from db_setup import *
-from models import *
-from schema import *
+from models import Base, Customer
+from schema import CustomerData
+from enum import Enum
 import pandas as pd
 import joblib
+import uvicorn
 
+
+class PredictionSource(Enum):
+    webpage = "webpage"
+    scheduled = "scheduled"
+    all = "all"
 
 def create_tables():
     Base.metadata.create_all(bind=engine)
@@ -32,58 +40,58 @@ model = joblib.load('../notebook/boosting_model.joblib')
 
 
 @app.post("/predict/")
-async def predict(data: CustomerData, db: SessionLocal = Depends(get_db)):
-    customer = Customer(**data.dict())
+async def predict(data: List[CustomerData],
+                  db: SessionLocal = Depends(get_db)):
+    """ Perform prediction and store the results in the database
+    
+    Arguments:
+    data: List of CustomerData Pydantic models.
+    db: Database session.
+    """
+    # Convert the list of Pydantic models to a list of dictionaries
+    data_dicts = [item.dict() for item in data]
 
-    # Convert Pydantic model to DataFrame
-    input_data = pd.DataFrame([data.dict()])
+    # Create a DataFrame from the list of dictionaries
+    input_data = pd.DataFrame(data_dicts)
     input_data.drop(
         columns=["PredictionSource"], inplace=True, errors="ignore")
 
     # Perform prediction
-    prediction_result = model.predict(input_data)
-    for i in prediction_result.tolist():
-        customer.PredictionResult = i
+    prediction_results = model.predict(input_data)
 
-    db.add(customer)
+    results = []
+    for idx, prediction in enumerate(prediction_results):
+        customer_data = data_dicts[idx]
+        customer_data.update({"PredictionResult": int(prediction)})
+        # Create and add CustomerModel instance to database
+        customer = Customer(**customer_data)
+        db.add(customer)
+        results.append(customer_data)
+
     db.commit()
-
-    return {"prediction": prediction_result.tolist()}
+    return {"prediction": results}
 
 
 @app.get('/past-predictions/')
 def get_predict(dates: dict, db: SessionLocal = Depends(get_db)):
+    """ Get past predictions from the database
+    
+    Arguments:
+    dates: Dictionary containing the start and end dates for the query.
+    db: Database session.
+    """
+    start_date = datetime.strptime(dates["start_date"], "%Y-%m-%d").date()
+    end_date = datetime.strptime(dates["end_date"], "%Y-%m-%d").date()
+    prediction_source = PredictionSource(dates["pred_source"])
 
-    start_date = dates["start_date"]
-    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-    end_date = dates["end_date"]
-    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
-    prediction_source = dates["pred_source"]
-    print(f"Prediction Source: {prediction_source}")
+    filters = [Customer.PredictionDate >= start_date, Customer.PredictionDate < end_date]
+    if prediction_source != PredictionSource.all:
+        filters.append(Customer.PredictionSource == prediction_source.value)
 
-    if prediction_source == "webpage":
-        predictions = db.query(Customer).filter(
-            and_(Customer.PredictionDate >= start_date,
-                 Customer.PredictionDate < end_date,
-                 Customer.PredictionSource == prediction_source)
-        ).all()
-
-    if prediction_source == "scheduled":
-        predictions = db.query(Customer).filter(
-            and_(Customer.PredictionDate >= start_date,
-                 Customer.PredictionDate < end_date,
-                 Customer.PredictionSource == prediction_source)
-        ).all()
-
-    if prediction_source == "all":
-        predictions = db.query(Customer).filter(
-            and_(Customer.PredictionDate >= start_date,
-                 Customer.PredictionDate < end_date)
-        ).all()
+    predictions = db.query(Customer).filter(and_(*filters)).all()
 
     return predictions
 
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8050)
+    uvicorn.run("main:app", host="127.0.0.1", port=8050, reload=True)

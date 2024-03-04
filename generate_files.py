@@ -23,8 +23,8 @@ def split_csv(dataframe, output_folder, chunk_size=10):
         chunk.to_csv(f"{output_folder}/customers_file_{i+1}.csv", index=False)
 
 
-df = pd.read_csv("../dsp-finalproject/data/customer_churn_records.csv")
+df = pd.read_csv("../customers-churn-ml-app/data/customer_churn_records.csv")
 df_with_only_features = df.drop(
     ["RowNumber", "CustomerId", "Geography", "Surname", "Complain", "Exited"],
     axis=1)
-split_csv(df_with_only_features, "../dsp-finalproject/data/Folder A")
+split_csv(df_with_only_features, "../customers-churn-ml-app/data/Folder A")

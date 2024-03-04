@@ -41,9 +41,9 @@ def prediction_job():
 
     @task
     def make_predictions(df):
-        prediction_data = {}
+        prediction_data = []
         for _, row in df.iterrows():
-            prediction_data = {
+            row_data = {
                 "CreditScore": row["CreditScore"],
                 "Gender": row["Gender"],
                 "Age": row["Age"],
@@ -58,6 +58,7 @@ def prediction_job():
                 "PointEarned": row["PointEarned"],
                 "PredictionSource": "scheduled"
             }
+            prediction_data.append(row_data)
 
         response = requests.post(
             API_URL,
